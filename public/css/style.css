@@ -1,0 +1,13 @@
+nav {
+    display: flex;
+    justify-content: center;
+    background-color: rgb(255, 202, 210);
+}
+
+a {
+    margin: 10px;
+}
+
+body {
+    background-color: rgb(254, 168, 181);
+}
