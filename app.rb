@@ -15,7 +15,9 @@ require 'sinatra/reloader'
 #5. Skapa funktionalitet för att ta bort album
 
 #6. Skapa funktionalitet för att uppdatera artistinformation
+enable :sessions
 
+# session[:id] = 1
 
 get('/')  do
   slim(:index)
@@ -29,6 +31,18 @@ get('/login') do
     slim(:login)
 end
 
-get('/discover') do 
-    slim(:discover)
+get('/new') do 
+    slim(:new)
+end
+
+post('/add_book') do
+    titel = params[:titel]
+    age_of_publication = params[:age_of_publication]
+    author = params[:author]
+    genre = params[:genre]
+    review = params[:review]
+
+    session[:data] = [titel,age_of_publication,author,genre,review]
+
+    redirect('/') 
 end
