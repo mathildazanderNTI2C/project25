@@ -1,20 +1,21 @@
-h1 lägg till bok 
+h2 Lägg till bok
 
-form action="add_book" method="post"
-    input type="text"  name="titel" placeholder="Bokens titel"
-    input type="text" name="age_of_publication" placeholder="Publiseringsår"
-    input type="text" name="author" placeholder="Författare"
-    select name="genre" id="genre"
-        <option value="romans">Romantik</option>
-        <option value="fantasy">Fantasy</option>
-        <option value="dackare">Däckare</option>
-        <option value="science_fiction">Science-fiction</option>
-    
-    select name="review" id="review"
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-    input type="submit" value="Skicka!"
+form action="/add_book" method="post"
+  input type="hidden" name="user_id" value="1" 
+  input type="text" name="book_name" placeholder="Bokens titel"
+  input type="text" name="publishing_year" placeholder="Publiseringsår"
+  input type="text" name="author" placeholder="Författare"
+  select name="genre_id" id="genre"
+    option value="romans" Romantik
+    option value="fantasy" Fantasy
+    option value="dackare" Däckare
+    option value="science_fiction" Science-fiction
+  
+  select name="reviews" id="reviews"
+    option value="1" 1
+    option value="2" 2
+    option value="3" 3
+    option value="4" 4
+    option value="5" 5
 
+  input type="submit" value="Skicka!"

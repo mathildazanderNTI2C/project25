@@ -1,4 +1,17 @@
-h1 Hej och välkommen till sidan där du samlar alla din böcker! 
+h2 Böcker
+p Här kommer en lista på böcker
 
-- session[:data].each do |item|
-    p #{item}
+- if book.any?
+  ul
+    - book.each do |b|
+      li Bok: #{b['book_name']}, Författare: #{b['author']}, Publiceringsår: #{b['publishing_year']}, Genre: #{b['genre_id']}, Betyg: #{b['reviews']}/5
+- else
+  p Inga böcker hittades.
+
+/ - book.each do |b|
+  p
+    | Titel: #{b['book_name']}
+    | Författare: #{b['author']}
+    | Genre: #{b['genre_id']}
+    | Publiseringsår: #{b['publishing_year']}
+    | Recension: #{b['reviews']}
