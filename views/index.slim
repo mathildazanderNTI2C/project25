@@ -1,17 +1,17 @@
 h2 Böcker
-p Här kommer en lista på böcker
+p Upptäck vad andra läsare läst för typ av böcker samt vad dem tyckte om dem! Logga in för att själv kunna lägga till dina böcker 
 
-- if book.any?
-  ul
-    - book.each do |b|
-      li Bok: #{b['book_name']}, Författare: #{b['author']}, Publiceringsår: #{b['publishing_year']}, Genre: #{b['genre_id']}, Betyg: #{b['reviews']}/5
-- else
-  p Inga böcker hittades.
+/ - if book.any?
+/   ul
+/     - book.each do |b|
+/       li Bok: #{b['book_name']}, Författare: #{b['author']}, Publiceringsår: #{b['publishing_year']}, Genre: #{b['genre_id']}, Betyg: #{b['reviews']}/5
+/ - else
+/   p Inga böcker hittades.
 
-/ - book.each do |b|
-  p
-    | Titel: #{b['book_name']}
-    | Författare: #{b['author']}
-    | Genre: #{b['genre_id']}
-    | Publiseringsår: #{b['publishing_year']}
-    | Recension: #{b['reviews']}
+- book.each do |b|
+    h2 = b["book_name"]
+    p Författare: #{b["author"]}
+    p Utgivningsår: #{b["publishing_year"]}
+    
+    - if session[:id] == b["user_id"]  # Kolla om användaren äger boken
+        a href="/book/#{b['id']}/edit" Redigera

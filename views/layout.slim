@@ -7,13 +7,15 @@ html lang="en"
     link rel="stylesheet" href="/css/style.css"/
     title Document
   body
-
-
     nav
-      a href="/" Startsida
-      a href="/profilsida" Profilsida
-      a href="/new" Lägg till bok!
-      a href="/showlogin" Logga in
+      - if session[:id].nil?
+        a href="/" Startsida
+        a href="/showlogin" Logga in
+      - else 
+        a href="/" Startsida
+        a href="/new" Lägg till bok!
+        a href="/profilsida" Profilsida
 
     ==yield
   
+/       a href="/showlogin" Logga ut

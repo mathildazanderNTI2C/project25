@@ -4,36 +4,19 @@ require 'sqlite3'
 require 'sinatra/reloader'
 require 'bcrypt'
 
-
 DB = SQLite3::Database.new('database.db')  # Om din databasfil heter 'database.db'
 DB.results_as_hash = true
-#1. 
-# - Kontrollera gems (sinatra, slim, sqlite). Kommer du behöva sessions? Troligen ej, ska endast utföra CRUD på databasen.
-# - Se hur Slimfiler är organierade i mappstrukturen. Följer det REST? Hur kallar man på en slimfil i en mapp?
-
-#2. Starta upp applikationen och inspektera koden i Chrome (högerklick>inspect). Hur ser länkarna ut? Finns de som routes i app.rb?
-
-#3. När vi klickar på ett album vill vi även se artisten (inte bara id). Gör ett andra anrop till db och skicka med i locals.
-
-#4. Skapa en sida där vi lägger till nya album för tex Artisten ACDC (ArtistId 1). Hitta gärna på nya namn på skivorna
-
-#5. Skapa funktionalitet för att ta bort album
-
-#6. Skapa funktionalitet för att uppdatera artistinformation
 enable :sessions
 
 get('/') do
-    # Hämta alla böcker från databasen
     db = SQLite3::Database.new('db/database.db')
     db.results_as_hash = true
-    result = db.execute("SELECT * FROM book") # Förutsätter att du har en table 'books'
+    result = db.execute("SELECT * FROM book")  # Hämtar alla böcker
     db.close
-  
-    # Skicka 'result' till mallen
-    slim(:index, locals: { book: result }) 
+    slim(:index, locals: { book: result })  # Skickar alla böcker till index-sidan
 end
 
-get('/book') do
+get('/book') do #books 
     db = SQLite3::Database.new("db/database.db")  # Uppdatera sökvägen om din databas heter annorlunda
     db.results_as_hash = true
     result = db.execute("SELECT * FROM book")   # Hämta alla böcker från tabellen 'books'
@@ -43,11 +26,25 @@ get('/book') do
 end
 
 get('/profilsida') do
-    slim(:profilsida)
+    if session[:id].nil?
+        redirect('/showlogin')  # Om ingen är inloggad, skicka till login
+    end
+
+    db = SQLite3::Database.new("db/database.db")
+    db.results_as_hash = true
+
+    # Hämtar böcker endast för den inloggade användaren
+    user_books = db.execute("SELECT * FROM book WHERE user_id = ?", session[:id])  
+
+    slim(:profilsida, locals: { books: user_books, username: session[:username] })
 end
 
 get('/showlogin') do
     slim(:login)
+end
+
+get('/registrera') do
+    slim(:registrera)
 end
 
 post('/register') do
@@ -73,16 +70,26 @@ post('/login') do
     db = SQLite3::Database.new('db/database.db')
     db.results_as_hash = true
     result = db.execute("SELECT * FROM users WHERE username = ?", username).first
-    pwdigest = result["pwdigest"]
-    id = result["id"]
-  
-    if BCrypt::Password.new(pwdigest) == password
-      session[:"id"] = id 
-      redirect('/profilsida')
-    else
-      "FEL LÖSEN!"
+    if result.nil?
+        "användaren finns inte"
+    else 
+        pwdigest = result["pwdigest"]
+        id = result["id"]
+    
+        if BCrypt::Password.new(pwdigest) == password
+        session[:id] = id 
+        session[:username] = username
+        redirect('/profilsida')
+        else
+        "FEL LÖSEN!"
+        end
     end
 end 
+
+post ('/logout') do
+    session[:id] = nil
+    redirect('/')
+end
 
 post('/users/new') do
     username = params[:username]
@@ -104,24 +111,29 @@ get('/new') do
     slim(:new)
 end
 
-post('/add_book') do
+post('/add_book') do # books 
+    if session[:id].nil?
+        redirect('/showlogin')  # Om ingen är inloggad, skicka till login
+    end
     book_name = params[:book_name]
     publishing_year = params[:publishing_year]
     author = params[:author]
     genre_id = params[:genre_id]
     reviews = params[:reviews]
-    user_id = params[:user_id]  # Hämta användarens ID från formuläret
+    user_id = session["id"]  # Hämta användarens ID från sessionen
   
     db = SQLite3::Database.new("db/database.db")
     db.execute("INSERT INTO book (book_name, publishing_year, author, genre_id, reviews, user_id) VALUES (?, ?, ?, ?, ?, ?)", [book_name, publishing_year, author, genre_id, reviews, user_id])
     db.close
   
-    redirect('/')
+    redirect('/profilsida')  # Efter bokläggning, gå till profilsidan
 end
 
+
 get('/book/:id') do
+    db = SQLite3::Database.new("db/database.db")
     id = params[:id].to_i
-    book = DB.execute("SELECT * FROM book WHERE id = ?", id).first
-    slim(:show, locals: { book: book})
+    book = db.execute("SELECT * FROM book WHERE id = ?", id).first
+    slim(:edit, locals: { book: book})
 end
   

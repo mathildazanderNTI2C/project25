@@ -1,1 +1,15 @@
-h2 Profilsida
+h1 Profilsida
+
+h2 Hej och välkommen tillbaka #{username}!
+
+h3 Dina böcker:
+- if books.any?
+  ul
+    - books.each do |book|
+      li
+        | #{book['book_name']} - #{book['author']} (#{book['publishing_year']})
+- else
+  p Du har inte lagt till några böcker ännu.
+
+form action="/logout" method="post" 
+    input type="submit" value="Logga ut här!"
