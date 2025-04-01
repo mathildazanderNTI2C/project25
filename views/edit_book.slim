@@ -1,0 +1,28 @@
+h2 Redigera bok
+
+form action="/update_book/#{book['id']}" method="post"
+  label for="book_name" Bokens titel:
+  input type="text" name="book_name" value="#{book['book_name']}"
+
+  label for="publishing_year" Publiseringsår:
+  input type="text" name="publishing_year" value="#{book['publishing_year']}"
+
+  label for="author" Författare:
+  input type="text" name="author" value="#{book['author']}"
+
+  label for="genre_id" Genre:
+  select name="genre_id"
+    option value="romans" #{'selected' if book['genre_id'] == 'romans'} Romantik
+    option value="fantasy" #{'selected' if book['genre_id'] == 'fantasy'} Fantasy
+    option value="dackare" #{'selected' if book['genre_id'] == 'dackare'} Däckare
+    option value="science_fiction" #{'selected' if book['genre_id'] == 'science_fiction'} Science-fiction
+
+  label for="reviews" Recension:
+  select name="reviews"
+    option value="1" #{'selected' if book['reviews'] == '1'} 1
+    option value="2" #{'selected' if book['reviews'] == '2'} 2
+    option value="3" #{'selected' if book['reviews'] == '3'} 3
+    option value="4" #{'selected' if book['reviews'] == '4'} 4
+    option value="5" #{'selected' if book['reviews'] == '5'} 5
+
+  input type="submit" value="Uppdatera bok"

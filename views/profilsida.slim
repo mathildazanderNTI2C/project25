@@ -1,15 +1,31 @@
-h1 Profilsida
+/ h1 Profilsida
 
-h2 Hej och välkommen tillbaka #{username}!
+/ h2 Hej och välkommen tillbaka #{username}!
 
-h3 Dina böcker:
-- if books.any?
-  ul
-    - books.each do |book|
-      li
-        | #{book['book_name']} - #{book['author']} (#{book['publishing_year']})
+/ h3 Dina böcker:
+/ - if books.any?
+/   ul
+/     - books.each do |book|
+/       li
+/         | #{book['book_name']} - #{book['author']} (#{book['publishing_year']})
+/ - else
+/   p Du har inte lagt till några böcker ännu.
+
+/ form action="/logout" method="post" 
+/     input type="submit" value="Logga ut här!"
+
+h2 Böcker
+- if session[:id]
+    p Välkommen, #{session[:username]}! Lägg till dina böcker och utforska andras recensioner.
 - else
-  p Du har inte lagt till några böcker ännu.
+    p Upptäck vad andra läsare läst för typ av böcker samt vad de tyckte om dem! Logga in för att själv kunna lägga till dina böcker.
 
-form action="/logout" method="post" 
-    input type="submit" value="Logga ut här!"
+- books.each do |b|
+    h3 = b["book_name"]
+    p Författare: #{b["author"]}
+    p Utgivningsår: #{b["publishing_year"]}
+    p Recension: #{b["reviews"]}
+    p Genre: #{b["genre_id"]}
+
+    - if session[:id] == b["user_id"]  # Kolla om användaren äger boken
+        a href="/edit_book/#{b['id']}" Redigera

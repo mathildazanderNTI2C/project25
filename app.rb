@@ -4,9 +4,9 @@ require 'sqlite3'
 require 'sinatra/reloader'
 require 'bcrypt'
 
-DB = SQLite3::Database.new('database.db')  # Om din databasfil heter 'database.db'
+DB = SQLite3::Database.new('db/database.db')  # Om din databasfil heter 'database.db'
 DB.results_as_hash = true
-enable :sessions
+enable:sessions
 
 get('/') do
     db = SQLite3::Database.new('db/database.db')
@@ -21,7 +21,7 @@ get('/book') do #books
     db.results_as_hash = true
     result = db.execute("SELECT * FROM book")   # Hämta alla böcker från tabellen 'books'
     p result  # Skriver ut resultatet i terminalen för felsökning (kan tas bort i produktionskod)
-    slim(:"index", locals: {book:result})  # Skicka böckerna till Slim-sidan
+    slim(:"index", locals: {book: result})  # Skicka böckerna till Slim-sidan
     db.close  # Stäng databasen när vi är klar
 end
 
@@ -129,11 +129,53 @@ post('/add_book') do # books
     redirect('/profilsida')  # Efter bokläggning, gå till profilsidan
 end
 
-
 get('/book/:id') do
     db = SQLite3::Database.new("db/database.db")
     id = params[:id].to_i
     book = db.execute("SELECT * FROM book WHERE id = ?", id).first
-    slim(:edit, locals: { book: book})
+    slim(:edit_book, locals: { book: book})
 end
+
+get('/edit_book/:id') do
+    # Kontrollera om användaren är inloggad
+    if session[:id].nil?
+        redirect('/showlogin')  # Om ingen är inloggad, skicka till login
+    end
+
+    book_id = params[:id].to_i
+    db = SQLite3::Database.new('db/database.db')
+    db.results_as_hash = true
+
+    # Hämta boken från databasen
+    book = db.execute("SELECT * FROM book WHERE id = ?", book_id).first
+
+    # Kontrollera om den inloggade användaren är ägaren av boken
+    if book && book["user_id"] == session[:id]
+        slim(:edit_book, locals: { book: book })  # Skicka boken till redigeringssidan
+    else
+        redirect('/error')  # Om användaren inte äger boken, skicka till fel-sidan
+    end
+end
+
+post('/update_book/:id') do
+    book_id = params[:id].to_i
+    
+    # Hämta boken från databasen
+    book = DB.execute("SELECT * FROM book WHERE id = ?", [book_id])
+    
+    if book.nil?
+      return "Boken hittades inte"
+    end
+  
+    book_name = params[:book_name]
+    publishing_year = params[:publishing_year]
+    author = params[:author]
+    genre_id = params[:genre_id].to_i
+    reviews = params[:reviews].to_i
+  
+    DB.execute("UPDATE book SET book_name = ?, publishing_year = ?, author = ?, genre_id = ?, reviews = ? WHERE id = ?",
+               [book_name, publishing_year, author, genre_id, reviews, book_id])
+  
+    redirect "/"
+  end
   
