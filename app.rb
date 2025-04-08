@@ -7,13 +7,19 @@ require 'bcrypt'
 DB = SQLite3::Database.new('db/database.db')  # Om din databasfil heter 'database.db'
 DB.results_as_hash = true
 enable:sessions
+secure_paths = ["/profilsida"]
+before (secure_paths) do
+    if session[:id] == nil
+        redirect('/')
+    end
+end
 
 get('/') do
     db = SQLite3::Database.new('db/database.db')
     db.results_as_hash = true
     result = db.execute("SELECT * FROM book")  # Hämtar alla böcker
     db.close
-    slim(:index, locals: { book: result })  # Skickar alla böcker till index-sidan
+    slim(:index, locals: {book: result, admin:checkAdmin(session[:id])})  # Skickar alla böcker till index-sidan
 end
 
 get('/book') do #books 
@@ -40,11 +46,11 @@ get('/profilsida') do
 end
 
 get('/showlogin') do
-    slim(:login)
+    slim(:"user/login")
 end
 
 get('/registrera') do
-    slim(:registrera)
+    slim(:"user/registrera")
 end
 
 post('/register') do
@@ -108,7 +114,7 @@ post('/users/new') do
 end
 
 get('/new') do 
-    slim(:new)
+    slim(:"books/new")
 end
 
 post('/add_book') do # books 
@@ -133,7 +139,7 @@ get('/book/:id') do
     db = SQLite3::Database.new("db/database.db")
     id = params[:id].to_i
     book = db.execute("SELECT * FROM book WHERE id = ?", id).first
-    slim(:edit_book, locals: { book: book})
+    slim(:"books/edit_book", locals: { book: book})
 end
 
 get('/edit_book/:id') do
@@ -151,7 +157,7 @@ get('/edit_book/:id') do
 
     # Kontrollera om den inloggade användaren är ägaren av boken
     if book && book["user_id"] == session[:id]
-        slim(:edit_book, locals: { book: book })  # Skicka boken till redigeringssidan
+        slim(:"books/edit_book", locals: { book: book })  # Skicka boken till redigeringssidan
     else
         redirect('/error')  # Om användaren inte äger boken, skicka till fel-sidan
     end
@@ -170,7 +176,7 @@ post('/update_book/:id') do
     book_name = params[:book_name]
     publishing_year = params[:publishing_year]
     author = params[:author]
-    genre_id = params[:genre_id].to_i
+    genre_id = params[:genre_id]
     reviews = params[:reviews].to_i
   
     DB.execute("UPDATE book SET book_name = ?, publishing_year = ?, author = ?, genre_id = ?, reviews = ? WHERE id = ?",
@@ -178,4 +184,27 @@ post('/update_book/:id') do
   
     redirect "/"
   end
-  
+
+
+post('/delete_book/:id') do
+  DB.results_as_hash = true  # Gör så att vi kan använda bok["user_id"]
+  book_id = params[:id].to_i
+  p checkAdmin(session[:id])[0]
+  book = DB.execute("SELECT * FROM book WHERE id = ?", [book_id]).first
+  if book && book["user_id"] == session[:id]
+    DB.execute("DELETE FROM book WHERE id = ?", [book_id])
+    puts "Bok med ID #{book_id} raderades"
+  elsif checkAdmin(session[:id])[0] != nil
+    DB.execute("DELETE FROM book WHERE id = ?", [book_id])
+    puts "Bok med ID #{book_id} raderades"
+    redirect ('/')
+  else
+    puts "Ingen rätt att radera eller bok hittades inte"
+  end
+
+  redirect ('/profilsida')
+end
+
+def checkAdmin(id)
+    return DB.execute('SELECT admin FROM users WHERE id = ?', [id])
+end

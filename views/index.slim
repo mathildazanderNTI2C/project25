@@ -10,3 +10,7 @@ h2 Böcker
     p Utgivningsår: #{b["publishing_year"]}
     p Recension: #{b["reviews"]}
     p Genre: #{b["genre_id"]}
+
+    - if admin[0] != nil  # Kolla om användaren äger boken
+        form action="/delete_book/#{b['id']}" method="post" style="display:inline"
+          input type="submit" value="Radera"
