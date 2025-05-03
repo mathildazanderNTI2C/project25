@@ -6,6 +6,7 @@ require 'bcrypt'
 
 DB = SQLite3::Database.new('db/database.db')  # Om din databasfil heter 'database.db'
 DB.results_as_hash = true
+
 enable:sessions
 secure_paths = ["/profilsida"]
 before (secure_paths) do
@@ -22,7 +23,7 @@ get('/') do
     slim(:index, locals: {book: result, admin:checkAdmin(session[:id])})  # Skickar alla böcker till index-sidan
 end
 
-get('/book') do #books 
+get('/books') do
     db = SQLite3::Database.new("db/database.db")  # Uppdatera sökvägen om din databas heter annorlunda
     db.results_as_hash = true
     result = db.execute("SELECT * FROM book")   # Hämta alla böcker från tabellen 'books'
@@ -113,11 +114,11 @@ post('/users/new') do
     end
 end
 
-get('/new') do 
+get('/new') do # vill ändra till get books/new men sidan krashar då?
     slim(:"books/new")
 end
 
-post('/add_book') do # books 
+post('/books') do 
     if session[:id].nil?
         redirect('/showlogin')  # Om ingen är inloggad, skicka till login
     end
@@ -135,7 +136,7 @@ post('/add_book') do # books
     redirect('/profilsida')  # Efter bokläggning, gå till profilsidan
 end
 
-get('/book/:id') do
+get('/books/:id') do
     db = SQLite3::Database.new("db/database.db")
     id = params[:id].to_i
     book = db.execute("SELECT * FROM book WHERE id = ?", id).first
@@ -207,4 +208,14 @@ end
 
 def checkAdmin(id)
     return DB.execute('SELECT admin FROM users WHERE id = ?', [id])
+end
+
+def authorized_to_modify?(book_id, user_id)
+  book = DB.execute("SELECT * FROM book WHERE id = ?", [book_id]).first
+  return false if book.nil?
+
+  is_owner = book["user_id"] == user_id
+  is_admin = checkAdmin(user_id).first["admin"] == 1
+
+  is_owner || is_admin
 end
